@@ -4,11 +4,6 @@
     <p>Neste jogo você tem que descobrir uma palavra aleatória. As dicas são: palavras com 5 letras, sem acentos ou ç. Boa sorte!</p>
     <div class="tentativa 1">
         <input type="text" class="upper" maxlength="5" id="1" required v-model="digitado" v-on:keypress.enter="verificarPalavra(digitado)" placeholder="digite uma palavra">
-        
-        <!--<input type="text" maxlength="1" id="2" required v-on:keyup="$event.target.nextElementSibling.focus()">
-        <input type="text" maxlength="1" id="3" required v-on:keyup="$event.target.nextElementSibling.focus()">
-        <input type="text" maxlength="1" id="4" required v-on:keyup="$event.target.nextElementSibling.focus()">
-        <input type="text" maxlength="1" id="5" required>-->
     </div>
     <!--<div class="tentativa 2">
         <input type="text" maxlength="1" required v-on:keypress="proxLetra">
@@ -39,17 +34,16 @@
         <input type="text">   
     </div>-->
     <div >
-        <p v-show="resultado==='ok'">Você acertou!!!</p>
+        <p v-show="lista.length>0" v-if="show==false" >Você acertou!!! <br> A palavra é {{digitado}}</p>
     </div>
-    <div class="acertos" v-if="resultado">
-            <p v-if="resultado=='nenhuma'">Letras corretas: <span>{{resultado}}</span></p>
-            <p v-if="resultado!=='ok' && resultado!== 'nenhuma'">
-                Você acertou: <span class="upper">{{resultado}}</span>
+    <div class="acertos" v-if="show==true" >
+            <p v-if="acertos">
+                Você acertou: <span class="upper">{{acertos.toString()}}</span>
                 <br> Letras que a palavra <span class="bold">não</span> contém: <span class="upper">{{erros.toString()}}</span>
             </p>
     </div>
     <div>
-        <p>Palavras que você já acertou: <span v-if="lista.length>0">{{lista}}</span></p>
+        <p>Palavras que você já acertou: <span v-if="lista.length>0">{{lista}}.</span></p>
     </div>
 </div>
 </template>
@@ -64,8 +58,8 @@
                 letrasDigitadas:[],
                 erros:[],
                 acertos: [],
-                resultado:"",
-                lista:[]
+                lista:[],
+                show:false
             }
         },
         methods: {
@@ -75,35 +69,43 @@
                 this.palavras = data.nivel1;
             },
 
-            verificarPalavra(digitado, letrasCorretas, letrasDigitadas, acertos,lista, erros){
+            verificarPalavra(digitado, letrasCorretas, letrasDigitadas, acertos, erros){
+                this.show=true
                 var correta = this.palavras[1].palavra
                 if(digitado == correta){
                     this.acertou()
                     this.lista+=correta;
+                    this.show=false
                 }else{
-                    letrasCorretas = correta.split(""),
-                    letrasDigitadas = digitado.split(""),
+                    letrasCorretas = correta.split("")
+                    letrasDigitadas = digitado.split("")
 
-                    acertos = letrasCorretas.filter(letra => letrasDigitadas.includes(letra))
+                    if(this.acertos.length==0){
+                       this.acertos = this.contemLetra(letrasCorretas, letrasDigitadas, 1)+"," 
+                    }else{
+                        this.acertos = this.contemLetra(letrasDigitadas, letrasCorretas, 1)+","
+                    }
                     
-                    acertos.length>0?this.parcial(acertos):this.resultado='nenhuma',
-
-                    this.erros+= this.letrasErradas(letrasCorretas, letrasDigitadas)+","
+                    if(this.erros.length==0){
+                        this.erros = this.contemLetra(letrasCorretas, letrasDigitadas, 0)+","
+                    }else{
+                        this.erros += this.contemLetra(letrasCorretas, letrasDigitadas, 0)+","
+                    }
                 }
             },
             acertou(){
-                this.resultado='ok'
-                setTimeout(() => this.resultado="", 3000)
-                setTimeout(() => this.digitado="", 3000)
+                setTimeout(() => this.show=true, 3000)
+                setTimeout(() => this.acertos='', 3000)
+                setTimeout(() => this.erros='', 3000)
+                setTimeout(() => this.digitado='', 3000)
             },
-            parcial(acertos){
-                this.resultado += acertos.toString().replace(/,/g,", ")
-            },
-            letrasErradas(letrasCorretas, letrasDigitadas){
-              return letrasDigitadas.filter(e => {
-                return !letrasCorretas.includes(e);
-                
-              })
+            contemLetra(c, d, n){
+               if (n==1){
+                return c.filter(letra => {return d.includes(letra)})
+               }else{
+
+                return d.filter(letra => {return !c.includes(letra)})
+               }
             }
               
         },
